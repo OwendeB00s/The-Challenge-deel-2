@@ -19,28 +19,28 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         root = new BorderPane();
 
-        
+
         homeBtn = new Button("Home");
-        historyBtn = new Button("Geschiedenis");
-        settingsBtn = new Button("Instellingen");
+        historyBtn = new Button("History");
+        settingsBtn = new Button("Settings");
         accountBtn = new Button("Account");
 
-        
-        updateView("Welkom!", homeBtn);
 
-       
+        updateView("Welcome!", homeBtn);
+
+
         navBar = new HBox(10, historyBtn, homeBtn, settingsBtn);
         navBar.setAlignment(Pos.CENTER);
         navBar.setPadding(new Insets(10));
         root.setBottom(navBar);
 
-        
-        homeBtn.setOnAction(e -> updateView("Welkom!", homeBtn));
+
+        homeBtn.setOnAction(e -> updateView("Welcome!", homeBtn));
         historyBtn.setOnAction(e -> openHistory());
         settingsBtn.setOnAction(e -> openSettings());
         accountBtn.setOnAction(e -> updateView("Account", accountBtn));
 
-       
+
         Scene scene = new Scene(root, 800, 600);
         primaryStage.setTitle("AirAware");
         primaryStage.setScene(scene);
@@ -50,13 +50,13 @@ public class Main extends Application {
     private void updateView(String text, Button activeBtn) {
         root.setCenter(new Text(text));
 
-        
+
         homeBtn.setDisable(false);
         historyBtn.setDisable(false);
         settingsBtn.setDisable(false);
         accountBtn.setDisable(false);
 
-       
+
         if (activeBtn != null) {
             activeBtn.setDisable(true);
         }
@@ -71,7 +71,7 @@ public class Main extends Application {
         Button weekBtn = new Button("Week");
         Button monthBtn = new Button("Month");
 
-        
+
         todayBtn.setMinWidth(200);
         weekBtn.setMinWidth(200);
         monthBtn.setMinWidth(200);
@@ -79,13 +79,13 @@ public class Main extends Application {
         historyBox.getChildren().addAll(todayBtn, weekBtn, monthBtn);
         root.setCenter(historyBox);
 
-        
+
         homeBtn.setDisable(false);
         historyBtn.setDisable(true);
         settingsBtn.setDisable(false);
         accountBtn.setDisable(false);
 
-        
+
         todayBtn.setOnAction(e -> updateView("No Data Found", todayBtn));
         weekBtn.setOnAction(e -> updateView("No Data Found", weekBtn));
         monthBtn.setOnAction(e -> updateView("No Data Found", monthBtn));
@@ -100,7 +100,7 @@ public class Main extends Application {
         Button connectDeviceBtn = new Button("Connect Device");
         Button logoutBtn = new Button("Logout");
 
-        
+
         personalDataBtn.setMinWidth(200);
         connectDeviceBtn.setMinWidth(200);
         logoutBtn.setMinWidth(200);
@@ -120,7 +120,7 @@ public class Main extends Application {
         settingsBtn.setDisable(true);
         accountBtn.setDisable(false);
 
-        
+
         personalDataBtn.setOnAction(ev ->
                 updateView("No data found", personalDataBtn)
         );
@@ -128,7 +128,7 @@ public class Main extends Application {
         connectDeviceBtn.setOnAction(ev -> {
             TextInputDialog codeDialog = new TextInputDialog();
             codeDialog.setTitle("Connect Device");
-            codeDialog.setHeaderText("Voer de verbindingscode in:");
+            codeDialog.setHeaderText("Type in the connection code:");
             codeDialog.setContentText("Code:");
             codeDialog.showAndWait();
         });
@@ -137,10 +137,10 @@ public class Main extends Application {
             Alert logoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
             logoutAlert.setTitle("Logout");
             logoutAlert.setHeaderText("Are you sure you want to log out?");
-            logoutAlert.setContentText("Klik Ja of Nee");
+            logoutAlert.setContentText("Click Yes or No");
 
-            ButtonType yesBtn = new ButtonType("Ja");
-            ButtonType noBtn = new ButtonType("Nee");
+            ButtonType yesBtn = new ButtonType("Yes");
+            ButtonType noBtn = new ButtonType("No");
 
             logoutAlert.getButtonTypes().setAll(yesBtn, noBtn);
             logoutAlert.showAndWait();
