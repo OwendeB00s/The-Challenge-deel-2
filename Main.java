@@ -25,7 +25,6 @@ public class Main extends Application {
         settingsBtn = new Button("Settings");
         accountBtn = new Button("Account");
 
-
         updateView("Welcome!", homeBtn);
 
 
@@ -98,19 +97,23 @@ public class Main extends Application {
 
         Button personalDataBtn = new Button("Personal Data");
         Button connectDeviceBtn = new Button("Connect Device");
+        Button NotificationsBtn = new Button("Manage Notifications");
         Button logoutBtn = new Button("Logout");
 
 
         personalDataBtn.setMinWidth(200);
         connectDeviceBtn.setMinWidth(200);
+        NotificationsBtn.setMinWidth(200);
         logoutBtn.setMinWidth(200);
         accountBtn.setMinWidth(200);
 
         settingsBox.getChildren().addAll(
+                accountBtn,
                 personalDataBtn,
                 connectDeviceBtn,
-                logoutBtn,
-                accountBtn
+                NotificationsBtn,
+                logoutBtn
+
         );
 
         root.setCenter(settingsBox);
@@ -132,6 +135,9 @@ public class Main extends Application {
             codeDialog.setContentText("Code:");
             codeDialog.showAndWait();
         });
+        NotificationsBtn.setOnAction(ev -> {
+            openNotifications();
+        });
 
         logoutBtn.setOnAction(ev -> {
             Alert logoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -147,7 +153,38 @@ public class Main extends Application {
         });
     }
 
+    private void openNotifications() {
+            VBox NotificationBox = new VBox(20);
+            NotificationBox.setPadding(new Insets(20));
+            NotificationBox.setAlignment(Pos.CENTER);
+
+            Button PushNotificationsBtn = new Button("Enable/Disable push notifications");
+
+            PushNotificationsBtn.setMinWidth(200);
+
+        NotificationBox.getChildren().addAll(PushNotificationsBtn);
+        root.setCenter(NotificationBox);
+
+
+        homeBtn.setDisable(false);
+        historyBtn.setDisable(false);
+        settingsBtn.setDisable(false);
+        accountBtn.setDisable(false);
+
+        PushNotificationsBtn.setOnAction(ev -> {
+            Alert PushNotificationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            PushNotificationAlert.setTitle("Push notifications");
+            PushNotificationAlert.setHeaderText("Do you want to enable or disable push notifications?");
+            PushNotificationAlert.setContentText("Click Enable or Disable");
+
+            ButtonType yesBtn = new ButtonType("Enable");
+            ButtonType noBtn = new ButtonType("Disable");
+
+            PushNotificationAlert.getButtonTypes().setAll(yesBtn, noBtn);
+            PushNotificationAlert.showAndWait();
+        });
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
-}
