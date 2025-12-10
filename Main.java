@@ -19,28 +19,28 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         root = new BorderPane();
 
-       
+        
         homeBtn = new Button("Home");
         historyBtn = new Button("Geschiedenis");
         settingsBtn = new Button("Instellingen");
         accountBtn = new Button("Account");
 
-
+        
         updateView("Welkom!", homeBtn);
 
-        
+       
         navBar = new HBox(10, historyBtn, homeBtn, settingsBtn);
         navBar.setAlignment(Pos.CENTER);
         navBar.setPadding(new Insets(10));
         root.setBottom(navBar);
 
-
+        
         homeBtn.setOnAction(e -> updateView("Welkom!", homeBtn));
-        historyBtn.setOnAction(e -> updateView("Geschiedenis (inhoud komt nog)", historyBtn));
+        historyBtn.setOnAction(e -> openHistory());
         settingsBtn.setOnAction(e -> openSettings());
         accountBtn.setOnAction(e -> updateView("Account", accountBtn));
 
-
+       
         Scene scene = new Scene(root, 800, 600);
         primaryStage.setTitle("AirAware");
         primaryStage.setScene(scene);
@@ -50,16 +50,45 @@ public class Main extends Application {
     private void updateView(String text, Button activeBtn) {
         root.setCenter(new Text(text));
 
-
+        
         homeBtn.setDisable(false);
         historyBtn.setDisable(false);
         settingsBtn.setDisable(false);
         accountBtn.setDisable(false);
 
-
+       
         if (activeBtn != null) {
             activeBtn.setDisable(true);
         }
+    }
+
+    private void openHistory() {
+        VBox historyBox = new VBox(20);
+        historyBox.setPadding(new Insets(20));
+        historyBox.setAlignment(Pos.CENTER);
+
+        Button todayBtn = new Button("Today");
+        Button weekBtn = new Button("Week");
+        Button monthBtn = new Button("Month");
+
+        
+        todayBtn.setMinWidth(200);
+        weekBtn.setMinWidth(200);
+        monthBtn.setMinWidth(200);
+
+        historyBox.getChildren().addAll(todayBtn, weekBtn, monthBtn);
+        root.setCenter(historyBox);
+
+        
+        homeBtn.setDisable(false);
+        historyBtn.setDisable(true);
+        settingsBtn.setDisable(false);
+        accountBtn.setDisable(false);
+
+        
+        todayBtn.setOnAction(e -> updateView("No Data Found", todayBtn));
+        weekBtn.setOnAction(e -> updateView("No Data Found", weekBtn));
+        monthBtn.setOnAction(e -> updateView("No Data Found", monthBtn));
     }
 
     private void openSettings() {
@@ -71,7 +100,7 @@ public class Main extends Application {
         Button connectDeviceBtn = new Button("Connect Device");
         Button logoutBtn = new Button("Logout");
 
-
+        
         personalDataBtn.setMinWidth(200);
         connectDeviceBtn.setMinWidth(200);
         logoutBtn.setMinWidth(200);
@@ -86,13 +115,12 @@ public class Main extends Application {
 
         root.setCenter(settingsBox);
 
-       
         homeBtn.setDisable(false);
         historyBtn.setDisable(false);
         settingsBtn.setDisable(true);
         accountBtn.setDisable(false);
 
-
+        
         personalDataBtn.setOnAction(ev ->
                 updateView("No data found", personalDataBtn)
         );
