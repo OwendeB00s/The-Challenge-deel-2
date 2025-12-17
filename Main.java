@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.beans.binding.When;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -12,7 +13,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
 
     private BorderPane root;
-    private Button homeBtn, historyBtn, settingsBtn, accountBtn;
+    private Button homeBtn, historyBtn, settingsBtn;
     private HBox navBar;
 
     @Override
@@ -23,7 +24,6 @@ public class Main extends Application {
         homeBtn = new Button("Home");
         historyBtn = new Button("History");
         settingsBtn = new Button("Settings");
-        accountBtn = new Button("Account");
 
         updateView("Welcome!", homeBtn);
 
@@ -37,7 +37,6 @@ public class Main extends Application {
         homeBtn.setOnAction(e -> updateView("Welcome!", homeBtn));
         historyBtn.setOnAction(e -> openHistory());
         settingsBtn.setOnAction(e -> openSettings());
-        accountBtn.setOnAction(e -> updateView("Account", accountBtn));
 
 
         Scene scene = new Scene(root, 800, 600);
@@ -53,7 +52,7 @@ public class Main extends Application {
         homeBtn.setDisable(false);
         historyBtn.setDisable(false);
         settingsBtn.setDisable(false);
-        accountBtn.setDisable(false);
+
 
 
         if (activeBtn != null) {
@@ -82,7 +81,7 @@ public class Main extends Application {
         homeBtn.setDisable(false);
         historyBtn.setDisable(true);
         settingsBtn.setDisable(false);
-        accountBtn.setDisable(false);
+
 
 
         todayBtn.setOnAction(e -> updateView("No Data Found", todayBtn));
@@ -105,10 +104,9 @@ public class Main extends Application {
         connectDeviceBtn.setMinWidth(200);
         NotificationsBtn.setMinWidth(200);
         logoutBtn.setMinWidth(200);
-        accountBtn.setMinWidth(200);
+
 
         settingsBox.getChildren().addAll(
-                accountBtn,
                 personalDataBtn,
                 connectDeviceBtn,
                 NotificationsBtn,
@@ -121,12 +119,14 @@ public class Main extends Application {
         homeBtn.setDisable(false);
         historyBtn.setDisable(false);
         settingsBtn.setDisable(true);
-        accountBtn.setDisable(false);
+
+
 
 
         personalDataBtn.setOnAction(ev ->
-                updateView("No data found", personalDataBtn)
+                openpersonaldata()
         );
+
 
         connectDeviceBtn.setOnAction(ev -> {
             TextInputDialog codeDialog = new TextInputDialog();
@@ -150,26 +150,84 @@ public class Main extends Application {
 
             logoutAlert.getButtonTypes().setAll(yesBtn, noBtn);
             logoutAlert.showAndWait();
+
+
         });
     }
+private void openpersonaldata() {
+        VBox personalDataBox = new VBox(20);
+        personalDataBox.setPadding(new Insets(20));
+        personalDataBox.setAlignment(Pos.CENTER);
+
+        Button ChangeusernameBtn = new Button("Change Username");
+        Button ChangeEmailBtn = new Button("Change Email");
+        Button ChangePasswordBtn = new Button("Change Password");
+        Button DeleteAccountBtn = new Button("Delete Account");
+
+        ChangeusernameBtn.setMinWidth(200);
+        ChangeEmailBtn.setMinWidth(200);
+        ChangePasswordBtn.setMinWidth(200);
+        DeleteAccountBtn.setMinWidth(200);
+
+        personalDataBox.getChildren().addAll(ChangeusernameBtn,ChangeEmailBtn,ChangePasswordBtn,DeleteAccountBtn);
+        root.setCenter(personalDataBox);
+
+        ChangeusernameBtn.setOnAction(ev -> {
+            TextInputDialog codeDialog = new TextInputDialog();
+            codeDialog.setTitle("Change Username");
+            codeDialog.setHeaderText("Change Username:");
+            codeDialog.setContentText("Username:");
+            codeDialog.showAndWait();
+        });
+
+        ChangeEmailBtn.setOnAction(ev -> {
+            TextInputDialog codeDialog = new TextInputDialog();
+            codeDialog.setTitle("Change Email");
+            codeDialog.setHeaderText("Change Email:");
+            codeDialog.setContentText("Email:");
+            codeDialog.showAndWait();
+        });
+
+        ChangePasswordBtn.setOnAction(ev -> {
+            TextInputDialog codeDialog = new TextInputDialog();
+            codeDialog.setTitle("Change Password");
+            codeDialog.setHeaderText("Change Password:");
+            codeDialog.setContentText("Password:");
+            codeDialog.showAndWait();
+        });
+
+        DeleteAccountBtn.setOnAction(ev -> {
+            Alert deleteAccountAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            deleteAccountAlert.setTitle("Delete Account");
+            deleteAccountAlert.setHeaderText("Delete Account");
+            deleteAccountAlert.setHeaderText("Do you wish to delete this account?");
+
+            ButtonType yesBtn = new ButtonType("Yes");
+            ButtonType noBtn = new ButtonType("No");
+            deleteAccountAlert.showAndWait();
+        });
+
+}
+
 
     private void openNotifications() {
-            VBox NotificationBox = new VBox(20);
-            NotificationBox.setPadding(new Insets(20));
-            NotificationBox.setAlignment(Pos.CENTER);
+        VBox NotificationBox = new VBox(20);
+        NotificationBox.setPadding(new Insets(20));
+        NotificationBox.setAlignment(Pos.CENTER);
 
-            Button PushNotificationsBtn = new Button("Enable/Disable push notifications");
+        Button PushNotificationsBtn = new Button("Enable/Disable push notifications");
+        Button EarlywarnBTn = new Button("Enable/Disable Early Warning");
 
-            PushNotificationsBtn.setMinWidth(200);
+        PushNotificationsBtn.setMinWidth(200);
+        EarlywarnBTn.setMinWidth(200);
 
-        NotificationBox.getChildren().addAll(PushNotificationsBtn);
+        NotificationBox.getChildren().addAll(PushNotificationsBtn, EarlywarnBTn);
         root.setCenter(NotificationBox);
 
 
         homeBtn.setDisable(false);
         historyBtn.setDisable(false);
         settingsBtn.setDisable(false);
-        accountBtn.setDisable(false);
 
         PushNotificationsBtn.setOnAction(ev -> {
             Alert PushNotificationAlert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -183,8 +241,22 @@ public class Main extends Application {
             PushNotificationAlert.getButtonTypes().setAll(yesBtn, noBtn);
             PushNotificationAlert.showAndWait();
         });
+
+        EarlywarnBTn.setOnAction(ev -> {
+            Alert EarlywarnAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            EarlywarnAlert.setTitle("Early warning");
+            EarlywarnAlert.setHeaderText("Do you want to enable or disable early warning notifications?");
+            EarlywarnAlert.setContentText("Click Enable or Disable");
+
+            ButtonType yesBtn = new ButtonType("Enable");
+            ButtonType noBtn = new ButtonType("Disable");
+
+            EarlywarnAlert.getButtonTypes().setAll(yesBtn, noBtn);
+            EarlywarnAlert.showAndWait();
+        });
     }
 
     public static void main(String[] args) {
         launch(args);
     }
+}
