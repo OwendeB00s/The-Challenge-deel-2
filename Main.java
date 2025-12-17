@@ -150,6 +150,12 @@ public class Main extends Application {
 
             logoutAlert.getButtonTypes().setAll(yesBtn, noBtn);
             logoutAlert.showAndWait();
+            if (logoutAlert.getResult() == yesBtn) {
+                Alert loggingoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                loggingoutAlert.setTitle("Logout");
+                loggingoutAlert.setHeaderText("logging out");
+                loggingoutAlert.showAndWait();
+            }
 
 
         });
