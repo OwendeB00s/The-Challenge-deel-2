@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="MetingController"
+      alignment="CENTER"
+      style="-fx-padding: 20;">
+
+    <HBox spacing="10">
+        <TextField fx:id="metingIdField" promptText="Meting ID"/>
+        <TextField fx:id="co2Field" promptText="CO2 gehalte"/>
+        <DatePicker fx:id="datumPicker" promptText="Datum"/>
+        <TextField fx:id="tijdField" promptText="Tijd (HH:MM)"/>
+        <TextField fx:id="productField" promptText="Product"/>
+        <TextField fx:id="bestellingField" promptText="Bestelling"/>
+    </HBox>
+
+    <Button text="Voeg Toe" onAction="#voegToe"/>
+
+    <TableView fx:id="table">
+        <columns>
+            <TableColumn fx:id="colMetingId" text="Meting ID"/>
+            <TableColumn fx:id="colCo2" text="CO2"/>
+            <TableColumn fx:id="colDatum" text="Datum"/>
+            <TableColumn fx:id="colTijd" text="Tijd"/>
+            <TableColumn fx:id="colProduct" text="Product"/>
+            <TableColumn fx:id="colBestelling" text="Bestelling"/>
+        </columns>
+    </TableView>
+
+</VBox>
