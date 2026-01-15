@@ -166,47 +166,47 @@ public class Main extends Application {
 
 
         connectDeviceBtn.setOnAction(ev -> {
-                    TextInputDialog codeDialog = new TextInputDialog();
-                    codeDialog.setTitle("Connect Device");
-                    codeDialog.setHeaderText("Type in the connection code:");
-                    codeDialog.setContentText("Code:");
+            TextInputDialog codeDialog = new TextInputDialog();
+            codeDialog.setTitle("Connect Device");
+            codeDialog.setHeaderText("Type in the connection code:");
+            codeDialog.setContentText("Code:");
 
-                    codeDialog.showAndWait().ifPresent(code -> {
-                        co2SensorConnected = true;
-                        startCO2Monitoring();
+            codeDialog.showAndWait().ifPresent(code -> {
+                co2SensorConnected = true;
+                startCO2Monitoring();
 
 
-                        Alert connectedAlert = new Alert(Alert.AlertType.INFORMATION);
-                        connectedAlert.setTitle("Connect Device");
-                        connectedAlert.setHeaderText("Device connected");
-                        connectedAlert.setContentText("CO2 monitoring is now active.");
-                        connectedAlert.showAndWait();
-                    });
-                });
+                Alert connectedAlert = new Alert(Alert.AlertType.INFORMATION);
+                connectedAlert.setTitle("Connect Device");
+                connectedAlert.setHeaderText("Device connected");
+                connectedAlert.setContentText("CO2 monitoring is now active.");
+                connectedAlert.showAndWait();
+            });
+        });
 
         NotificationsBtn.setOnAction(ev -> openNotifications());
 
-            logoutBtn.setOnAction(ev -> {
-                Alert logoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                logoutAlert.setTitle("Logout");
-                logoutAlert.setHeaderText("Are you sure you want to log out?");
-                logoutAlert.setContentText("Click Yes or No");
+        logoutBtn.setOnAction(ev -> {
+            Alert logoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            logoutAlert.setTitle("Logout");
+            logoutAlert.setHeaderText("Are you sure you want to log out?");
+            logoutAlert.setContentText("Click Yes or No");
 
-                ButtonType yesBtn = new ButtonType("Yes");
-                ButtonType noBtn = new ButtonType("No");
+            ButtonType yesBtn = new ButtonType("Yes");
+            ButtonType noBtn = new ButtonType("No");
 
-                logoutAlert.getButtonTypes().setAll(yesBtn, noBtn);
-                logoutAlert.showAndWait();
-                if (logoutAlert.getResult() == yesBtn) {
-                    Alert loggingoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                    loggingoutAlert.setTitle("Logout");
-                    loggingoutAlert.setHeaderText("logging out");
-                    loggingoutAlert.showAndWait();
-                }
+            logoutAlert.getButtonTypes().setAll(yesBtn, noBtn);
+            logoutAlert.showAndWait();
+            if (logoutAlert.getResult() == yesBtn) {
+                Alert loggingoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                loggingoutAlert.setTitle("Logout");
+                loggingoutAlert.setHeaderText("logging out");
+                loggingoutAlert.showAndWait();
+            }
 
 
-            });
-        }
+        });
+    }
     private void openpersonaldata() {
         VBox personalDataBox = new VBox(20);
         personalDataBox.setPadding(new Insets(20));
@@ -313,17 +313,17 @@ public class Main extends Application {
 
 
     private void open_today_calc() throws IOException {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("bestelling.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("Meting.fxml"));
 
-            Scene scene = new Scene(loader.load());
-            Stage stage = new Stage();
-            stage.setTitle("Bestelling System");
-            stage.setScene(scene);
-            stage.show();
+        Scene scene = new Scene(loader.load());
+        Stage stage = new Stage();
+        stage.setTitle("Meting System");
+        stage.setScene(scene);
+        stage.show();
 
-            homeBtn.setDisable(false);
-            historyBtn.setDisable(false);
-            settingsBtn.setDisable(false);
+        homeBtn.setDisable(false);
+        historyBtn.setDisable(false);
+        settingsBtn.setDisable(false);
     }
 
     // tijd uitlezen
