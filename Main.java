@@ -9,6 +9,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.fxml.FXMLLoader;
+
+import java.io.IOException;
 
 public class Main extends Application {
 
@@ -66,8 +69,8 @@ public class Main extends Application {
         historyBox.setAlignment(Pos.CENTER);
 
         Button todayBtn = new Button("Today");
-        Button weekBtn = new Button("Week");
-        Button monthBtn = new Button("Month");
+        Button weekBtn = new Button("This Week");
+        Button monthBtn = new Button("This Month");
 
 
         todayBtn.setMinWidth(200);
@@ -82,9 +85,14 @@ public class Main extends Application {
         historyBtn.setDisable(true);
         settingsBtn.setDisable(false);
 
+        todayBtn.setOnAction(e -> {
+            try {
+                open_today_calc();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
 
-
-        todayBtn.setOnAction(e -> updateView("No Data Found", todayBtn));
         weekBtn.setOnAction(e -> updateView("No Data Found", weekBtn));
         monthBtn.setOnAction(e -> updateView("No Data Found", monthBtn));
     }
@@ -160,7 +168,7 @@ public class Main extends Application {
 
         });
     }
-private void openpersonaldata() {
+    private void openpersonaldata() {
         VBox personalDataBox = new VBox(20);
         personalDataBox.setPadding(new Insets(20));
         personalDataBox.setAlignment(Pos.CENTER);
@@ -213,7 +221,7 @@ private void openpersonaldata() {
             deleteAccountAlert.showAndWait();
         });
 
-}
+    }
 
 
     private void openNotifications() {
@@ -261,6 +269,21 @@ private void openpersonaldata() {
             EarlywarnAlert.showAndWait();
         });
     }
+
+    private void open_today_calc() throws IOException {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("bestelling.fxml"));
+
+            Scene scene = new Scene(loader.load());
+            Stage stage = new Stage();
+            stage.setTitle("Bestelling System");
+            stage.setScene(scene);
+            stage.show();
+
+            homeBtn.setDisable(false);
+            historyBtn.setDisable(false);
+            settingsBtn.setDisable(false);
+    }
+
 
     public static void main(String[] args) {
         launch(args);
