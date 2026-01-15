@@ -1,5 +1,5 @@
-
 import javafx.application.Application;
+import javafx.beans.binding.When;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -9,8 +9,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
-
+import javafx.fxml.FXMLLoader;
+import java.io.IOException;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -31,18 +31,25 @@ public class Main extends Application {
 
     private VBox homeBox;
 
+
     @Override
     public void start(Stage primaryStage) {
         root = new BorderPane();
+
 
         homeBtn = new Button("Home");
         historyBtn = new Button("History");
         settingsBtn = new Button("Settings");
 
+
         // welkom en air quality
         airQualityLabel = new Label("Air quality: sensor not connected");
         airQualityLabel.setPadding(new Insets(10));
 
+        navBar = new HBox(10, historyBtn, homeBtn, settingsBtn);
+        navBar.setAlignment(Pos.CENTER);
+        navBar.setPadding(new Insets(10));
+        root.setBottom(navBar);
 
         homeBox = new VBox(10);
         homeBox.setPadding(new Insets(20));
@@ -52,14 +59,10 @@ public class Main extends Application {
 
         openHome();
 
-        navBar = new HBox(10, historyBtn, homeBtn, settingsBtn);
-        navBar.setAlignment(Pos.CENTER);
-        navBar.setPadding(new Insets(10));
-        root.setBottom(navBar);
-
         homeBtn.setOnAction(e -> openHome());
         historyBtn.setOnAction(e -> openHistory());
         settingsBtn.setOnAction(e -> openSettings());
+
 
         Scene scene = new Scene(root, 800, 600);
         primaryStage.setTitle("AirAware");
@@ -79,9 +82,12 @@ public class Main extends Application {
     private void updateView(String text, Button activeBtn) {
         root.setCenter(new Text(text));
 
+
         homeBtn.setDisable(false);
         historyBtn.setDisable(false);
         settingsBtn.setDisable(false);
+
+
 
         if (activeBtn != null) {
             activeBtn.setDisable(true);
@@ -94,8 +100,9 @@ public class Main extends Application {
         historyBox.setAlignment(Pos.CENTER);
 
         Button todayBtn = new Button("Today");
-        Button weekBtn = new Button("Week");
-        Button monthBtn = new Button("Month");
+        Button weekBtn = new Button("This Week");
+        Button monthBtn = new Button("This Month");
+
 
         todayBtn.setMinWidth(200);
         weekBtn.setMinWidth(200);
@@ -104,11 +111,19 @@ public class Main extends Application {
         historyBox.getChildren().addAll(todayBtn, weekBtn, monthBtn);
         root.setCenter(historyBox);
 
+
         homeBtn.setDisable(false);
         historyBtn.setDisable(true);
         settingsBtn.setDisable(false);
 
-        todayBtn.setOnAction(e -> updateView("No Data Found", todayBtn));
+        todayBtn.setOnAction(e -> {
+            try {
+                open_today_calc();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+
         weekBtn.setOnAction(e -> updateView("No Data Found", weekBtn));
         monthBtn.setOnAction(e -> updateView("No Data Found", monthBtn));
     }
@@ -123,16 +138,19 @@ public class Main extends Application {
         Button NotificationsBtn = new Button("Manage Notifications");
         Button logoutBtn = new Button("Logout");
 
+
         personalDataBtn.setMinWidth(200);
         connectDeviceBtn.setMinWidth(200);
         NotificationsBtn.setMinWidth(200);
         logoutBtn.setMinWidth(200);
+
 
         settingsBox.getChildren().addAll(
                 personalDataBtn,
                 connectDeviceBtn,
                 NotificationsBtn,
                 logoutBtn
+
         );
 
         root.setCenter(settingsBox);
@@ -141,50 +159,54 @@ public class Main extends Application {
         historyBtn.setDisable(false);
         settingsBtn.setDisable(true);
 
+
+
+
         personalDataBtn.setOnAction(ev -> openpersonaldata());
 
+
         connectDeviceBtn.setOnAction(ev -> {
-            TextInputDialog codeDialog = new TextInputDialog();
-            codeDialog.setTitle("Connect Device");
-            codeDialog.setHeaderText("Type in the connection code:");
-            codeDialog.setContentText("Code:");
+                    TextInputDialog codeDialog = new TextInputDialog();
+                    codeDialog.setTitle("Connect Device");
+                    codeDialog.setHeaderText("Type in the connection code:");
+                    codeDialog.setContentText("Code:");
+
+                    codeDialog.showAndWait().ifPresent(code -> {
+                        co2SensorConnected = true;
+                        startCO2Monitoring();
 
 
-            codeDialog.showAndWait().ifPresent(code -> {
-                co2SensorConnected = true;
-                startCO2Monitoring();
-
-
-                Alert connectedAlert = new Alert(Alert.AlertType.INFORMATION);
-                connectedAlert.setTitle("Connect Device");
-                connectedAlert.setHeaderText("Device connected");
-                connectedAlert.setContentText("CO2 monitoring is now active.");
-                connectedAlert.showAndWait();
-            });
-        });
+                        Alert connectedAlert = new Alert(Alert.AlertType.INFORMATION);
+                        connectedAlert.setTitle("Connect Device");
+                        connectedAlert.setHeaderText("Device connected");
+                        connectedAlert.setContentText("CO2 monitoring is now active.");
+                        connectedAlert.showAndWait();
+                    });
+                });
 
         NotificationsBtn.setOnAction(ev -> openNotifications());
 
-        logoutBtn.setOnAction(ev -> {
-            Alert logoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
-            logoutAlert.setTitle("Logout");
-            logoutAlert.setHeaderText("Are you sure you want to log out?");
-            logoutAlert.setContentText("Click Yes or No");
+            logoutBtn.setOnAction(ev -> {
+                Alert logoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                logoutAlert.setTitle("Logout");
+                logoutAlert.setHeaderText("Are you sure you want to log out?");
+                logoutAlert.setContentText("Click Yes or No");
 
-            ButtonType yesBtn = new ButtonType("Yes");
-            ButtonType noBtn = new ButtonType("No");
+                ButtonType yesBtn = new ButtonType("Yes");
+                ButtonType noBtn = new ButtonType("No");
 
-            logoutAlert.getButtonTypes().setAll(yesBtn, noBtn);
-            logoutAlert.showAndWait();
-            if (logoutAlert.getResult() == yesBtn) {
-                Alert loggingoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                loggingoutAlert.setTitle("Logout");
-                loggingoutAlert.setHeaderText("logging out");
-                loggingoutAlert.showAndWait();
-            }
-        });
-    }
+                logoutAlert.getButtonTypes().setAll(yesBtn, noBtn);
+                logoutAlert.showAndWait();
+                if (logoutAlert.getResult() == yesBtn) {
+                    Alert loggingoutAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                    loggingoutAlert.setTitle("Logout");
+                    loggingoutAlert.setHeaderText("logging out");
+                    loggingoutAlert.showAndWait();
+                }
 
+
+            });
+        }
     private void openpersonaldata() {
         VBox personalDataBox = new VBox(20);
         personalDataBox.setPadding(new Insets(20));
@@ -200,7 +222,7 @@ public class Main extends Application {
         ChangePasswordBtn.setMinWidth(200);
         DeleteAccountBtn.setMinWidth(200);
 
-        personalDataBox.getChildren().addAll(ChangeusernameBtn, ChangeEmailBtn, ChangePasswordBtn, DeleteAccountBtn);
+        personalDataBox.getChildren().addAll(ChangeusernameBtn,ChangeEmailBtn,ChangePasswordBtn,DeleteAccountBtn);
         root.setCenter(personalDataBox);
 
         ChangeusernameBtn.setOnAction(ev -> {
@@ -238,7 +260,9 @@ public class Main extends Application {
             deleteAccountAlert.getButtonTypes().setAll(yesBtn, noBtn);
             deleteAccountAlert.showAndWait();
         });
+
     }
+
 
     private void openNotifications() {
         VBox NotificationBox = new VBox(20);
@@ -253,6 +277,7 @@ public class Main extends Application {
 
         NotificationBox.getChildren().addAll(PushNotificationsBtn, EarlywarnBTn);
         root.setCenter(NotificationBox);
+
 
         homeBtn.setDisable(false);
         historyBtn.setDisable(false);
@@ -271,7 +296,6 @@ public class Main extends Application {
             PushNotificationAlert.showAndWait();
         });
 
-
         EarlywarnBTn.setOnAction(ev -> {
             Alert EarlywarnAlert = new Alert(Alert.AlertType.CONFIRMATION);
             EarlywarnAlert.setTitle("Early warning");
@@ -284,6 +308,22 @@ public class Main extends Application {
             EarlywarnAlert.getButtonTypes().setAll(yesBtn, noBtn);
             EarlywarnAlert.showAndWait();
         });
+    }
+
+
+
+    private void open_today_calc() throws IOException {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("bestelling.fxml"));
+
+            Scene scene = new Scene(loader.load());
+            Stage stage = new Stage();
+            stage.setTitle("Bestelling System");
+            stage.setScene(scene);
+            stage.show();
+
+            homeBtn.setDisable(false);
+            historyBtn.setDisable(false);
+            settingsBtn.setDisable(false);
     }
 
     // tijd uitlezen
@@ -308,16 +348,15 @@ public class Main extends Application {
         co2Poller.play();
     }
 
-
-   // melding geven
+    // melding geven
     private void updateAirQualityMessage(int co2ppm) {
         if (co2ppm > CO2_THRESHOLD_PPM) {
             airQualityLabel.setText("Please open a window! CO2: " + co2ppm + " ppm");
         } else {
             airQualityLabel.setText("Air quality is good. CO2: " + co2ppm + " ppm");
         }
-    }
 
+    }
 
     // aantal co2 genereren
     private int readCO2FromSensor() {
@@ -331,8 +370,8 @@ public class Main extends Application {
         }
     }
 
+
     public static void main(String[] args) {
         launch(args);
     }
 }
-
