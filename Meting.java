@@ -1,17 +1,28 @@
+
 import java.time.LocalDate;
 import java.util.UUID;
 
 public class Meting {
-    private String metingId;
-    private String co2Gehalte;
-    private LocalDate datum;
-    private String tijd;
-    private String product;
-    private String bestelling;
+    private final String metingId;
+    private final String co2Gehalte;
+    private final LocalDate datum;
+    private final String tijd;
+    private final String product;
+    private final String bestelling;
 
-    public Meting(String metingId, String co2Gehalte, LocalDate datum, String tijd, String product, String bestelling) {
-        
+    // 1) Voor nieuwe metingen: altijd UUID genereren
+    public Meting(String co2Gehalte, LocalDate datum, String tijd, String product, String bestelling) {
         this.metingId = UUID.randomUUID().toString();
+        this.co2Gehalte = co2Gehalte;
+        this.datum = datum;
+        this.tijd = tijd;
+        this.product = product;
+        this.bestelling = bestelling;
+    }
+
+    // 2) Voor metingen uit de database: bestaande metingId gebruiken
+    public Meting(String metingId, String co2Gehalte, LocalDate datum, String tijd, String product, String bestelling) {
+        this.metingId = metingId; // <-- NIET overschrijven!
         this.co2Gehalte = co2Gehalte;
         this.datum = datum;
         this.tijd = tijd;
