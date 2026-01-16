@@ -10,7 +10,11 @@
       style="-fx-padding: 20;">
 
     <HBox spacing="10">
-        <TextField fx:id="metingIdField" promptText="Meting ID"/>
+        <TextField fx:id="metingIdField"
+                   promptText="Meting ID (auto UUID)"
+                   editable="false"
+                   focusTraversable="false"/>
+
         <TextField fx:id="co2Field" promptText="CO2 gehalte"/>
         <DatePicker fx:id="datumPicker" promptText="Datum"/>
         <TextField fx:id="tijdField" promptText="Tijd (HH:MM)"/>
@@ -18,15 +22,13 @@
         <TextField fx:id="bestellingField" promptText="Bestelling"/>
     </HBox>
 
-    <Button text="Voeg Toe" onAction="#voegToe"/>
+    #voegToe
 
     <TableView fx:id="table">
         <columns>
-
             <TableColumn fx:id="colCo2" text="CO2"/>
             <TableColumn fx:id="colDatum" text="Datum"/>
             <TableColumn fx:id="colTijd" text="Tijd"/>
-
         </columns>
     </TableView>
 
