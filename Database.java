@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 public class Database {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/databse%20challenge";
+    private static final String URL = "jdbc:mysql://localhost:3306/ challenge";
     private static final String USER = "root";
     private static final String PASSWORD = "OwendeB00s";
 
@@ -17,7 +17,7 @@ public class Database {
 
 
         String sql =
-                "INSERT INTO meting (Meting_id, CO2_gehalte, Datum, Tijd, Product, Bestelling) " +
+                "INSERT INTO meting (meting_id, CO2_gehalte, Datum, Tijd ) " +
                         "VALUES (?, ?, ?, ?, ?, ?)";
 
 
@@ -26,7 +26,7 @@ public class Database {
 
             stmt.setString(1, metingId);
             stmt.setString(2, co2Gehalte);
-            stmt.setDate(3, java.sql.Date.valueOf(datum)); // ✅ LocalDate -> SQL DATE
+            stmt.setDate(3, java.sql.Date.valueOf(datum));
             stmt.setString(4, tijd);
             stmt.setString(5, product);
             stmt.setString(6, bestelling);
