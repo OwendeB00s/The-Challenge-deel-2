@@ -1,4 +1,5 @@
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class Meting {
     private String metingId;
@@ -9,7 +10,8 @@ public class Meting {
     private String bestelling;
 
     public Meting(String metingId, String co2Gehalte, LocalDate datum, String tijd, String product, String bestelling) {
-        this.metingId = metingId;
+        
+        this.metingId = UUID.randomUUID().toString();
         this.co2Gehalte = co2Gehalte;
         this.datum = datum;
         this.tijd = tijd;
@@ -17,11 +19,10 @@ public class Meting {
         this.bestelling = bestelling;
     }
 
-
+    public String getMetingId() { return metingId; }
     public String getCo2Gehalte() { return co2Gehalte; }
     public LocalDate getDatum() { return datum; }
     public String getTijd() { return tijd; }
     public String getProduct() { return product; }
     public String getBestelling() { return bestelling; }
 }
-
