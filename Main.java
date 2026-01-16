@@ -1,5 +1,4 @@
 import javafx.application.Application;
-import javafx.beans.binding.When;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -26,7 +25,7 @@ public class Main extends Application {
     private Timeline co2Poller;
     private boolean co2SensorConnected = false;
 
-    private static final int CO2_THRESHOLD_PPM = 1000;
+    private static final int CO2_THRESHOLD_PPM = 2000;
 
 
     private VBox homeBox;
@@ -360,7 +359,7 @@ public class Main extends Application {
 
     // aantal co2 genereren
     private int readCO2FromSensor() {
-        return 600 + (int) (Math.random() * 1000);
+        return 600 + (int) (Math.random() * 4400);
     }
 
     @Override
