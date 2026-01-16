@@ -1,4 +1,3 @@
-
 import java.time.LocalDate;
 
 public class Meting {
@@ -18,10 +17,11 @@ public class Meting {
         this.bestelling = bestelling;
     }
 
-    public String getMetingId() { return metingId; }
+
     public String getCo2Gehalte() { return co2Gehalte; }
     public LocalDate getDatum() { return datum; }
     public String getTijd() { return tijd; }
     public String getProduct() { return product; }
     public String getBestelling() { return bestelling; }
 }
+
