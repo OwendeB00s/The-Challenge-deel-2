@@ -6,20 +6,17 @@ import java.time.LocalDate;
 
 public class Database {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/ databasechallenge";
+    private static final String URL = "jdbc:mysql://localhost:3306/databasechallenge";
     private static final String USER = "root";
     private static final String PASSWORD = "OwendeB00s";
-
-    // ...
 
     public static void insertMeting(String metingId, String co2Gehalte, LocalDate datum,
                                     String tijd, String product, String bestelling) {
 
-
+       
         String sql =
-                "INSERT INTO meting (meting_id, CO2_gehalte, Datum, Tijd ) " +
-                        "VALUES (?, ?, ?, ?, ?, ?)";
-
+                "INSERT INTO meting (metingId, CO2_gehalte, Datum, Tijd, Product, Bestelling) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -48,7 +45,7 @@ public class Database {
 
             while (rs.next()) {
                 lijst.add(new Meting(
-                        rs.getString("Meting_id"),
+                        rs.getString("metingId"),       // i.p.v. Meting_id
                         rs.getString("CO2_gehalte"),
                         rs.getDate("Datum").toLocalDate(),
                         rs.getString("Tijd"),
@@ -61,7 +58,4 @@ public class Database {
         }
         return lijst;
     }
-
 }
-
-
