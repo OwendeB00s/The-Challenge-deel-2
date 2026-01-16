@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 public class Database {
 
-    private static final String URL = "jdbc:mysql://localhost:3306/ challenge";
+    private static final String URL = "jdbc:mysql://localhost:3306/ databasechallenge";
     private static final String USER = "root";
     private static final String PASSWORD = "OwendeB00s";
 
@@ -63,4 +63,5 @@ public class Database {
     }
 
 }
+
 
