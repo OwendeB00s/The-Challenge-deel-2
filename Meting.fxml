@@ -11,7 +11,7 @@
 
     <HBox spacing="10">
         <TextField fx:id="metingIdField"
-                   promptText="Meting ID (auto UUID)"
+                   promptText="Meting ID (server maakt UUID)"
                    editable="false"
                    focusTraversable="false"/>
 
@@ -22,7 +22,7 @@
         <TextField fx:id="bestellingField" promptText="Bestelling"/>
     </HBox>
 
-    #voegToe
+    <Button text="Voeg toe" onAction="#voegToe" />
 
     <TableView fx:id="table">
         <columns>
