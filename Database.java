@@ -13,7 +13,6 @@ public class Database {
     public static void insertMeting(String metingId, String co2Gehalte, LocalDate datum,
                                     String tijd, String product, String bestelling) {
 
-       
         String sql =
                 "INSERT INTO meting (metingId, CO2_gehalte, Datum, Tijd, Product, Bestelling) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
@@ -45,7 +44,7 @@ public class Database {
 
             while (rs.next()) {
                 lijst.add(new Meting(
-                        rs.getString("metingId"),       // i.p.v. Meting_id
+                        rs.getString("metingId"),
                         rs.getString("CO2_gehalte"),
                         rs.getDate("Datum").toLocalDate(),
                         rs.getString("Tijd"),
