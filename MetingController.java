@@ -18,23 +18,26 @@ public class MetingController {
 
     @FXML private TableView<Meting> table;
 
+    @FXML private TableColumn<Meting, String> colId;
     @FXML private TableColumn<Meting, String> colCo2;
     @FXML private TableColumn<Meting, String> colDatum;
     @FXML private TableColumn<Meting, String> colTijd;
 
     @FXML
     public void initialize() {
+        // ✅ TableView kolommen koppelen aan getters
+        colId.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMetingId()));
         colCo2.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getCo2Gehalte()));
         colDatum.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDatum().toString()));
         colTijd.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTijd()));
 
-        // ✅ Bij het openen van het scherm meteen een UUID klaarzetten
+        // ✅ Meteen een UUID klaarzetten in het metingIdField
         genereerNieuwMetingId();
 
         refreshTable();
     }
 
-    // ✅ Maakt een nieuwe UUID en zet die in het ID-veld
+    // ✅ Genereert een nieuwe UUID en toont hem in het veld
     private void genereerNieuwMetingId() {
         metingIdField.setText(UUID.randomUUID().toString());
     }
@@ -43,7 +46,7 @@ public class MetingController {
     public void voegToe() {
         LocalDate datum = datumPicker.getValue();
 
-        // ✅ ID niet meer valideren (want die wordt automatisch gevuld)
+        // ✅ metingIdField niet meer checken; die wordt automatisch gevuld
         if (co2Field.getText().isBlank() || datum == null) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Onvolledig");
@@ -52,8 +55,9 @@ public class MetingController {
             return;
         }
 
+        // ✅ Insert met UUID uit het veld
         Database.insertMeting(
-                metingIdField.getText(),      // ✅ is nu altijd een UUID
+                metingIdField.getText(),
                 co2Field.getText(),
                 datum,
                 tijdField.getText(),
@@ -61,14 +65,14 @@ public class MetingController {
                 bestellingField.getText()
         );
 
-        // velden leegmaken
+        // Velden leegmaken (behalve ID)
         co2Field.clear();
         datumPicker.setValue(null);
         tijdField.clear();
         productField.clear();
         bestellingField.clear();
 
-        // ✅ nieuwe UUID klaarzetten voor volgende meting
+        // ✅ Nieuwe UUID voor de volgende meting
         genereerNieuwMetingId();
 
         refreshTable();
