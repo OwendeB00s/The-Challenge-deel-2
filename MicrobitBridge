@@ -1,0 +1,352 @@
+
+package bridge;
+
+import com.fazecast.jSerialComm.SerialPort;
+
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class MicrobitBridge {
+
+    // ======= BACKEND SETTINGS =======
+    private static final String HOST_IP = "172.20.10.14";
+    private static final String API_URL  = "http://" + HOST_IP + ":8080/api/metingen";
+
+    // Als je alleen GUI-live wilt testen zonder backend:
+    private static final boolean ENABLE_BACKEND_POST = true;
+
+    // ======= SERIAL SETTINGS =======
+    private static final String FORCE_PORT = "COM4";
+    private static final int BAUD_RATE = 115200;
+
+    // ======= GUI LIVE STREAM SETTINGS (TCP) =======
+    private static final int GUI_PORT = 9000;
+    private static final List<PrintWriter> guiClients = new CopyOnWriteArrayList<>();
+
+    // ======= PUBLISH RATE LIMIT =======
+    private static final long PUBLISH_INTERVAL_MS = 5000; // elke 5 seconden
+
+    private static final HttpClient http = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
+
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+
+    // Haal laatste getal (1..5 digits) uit een rommelregel zoals "devc133"
+    private static final Pattern LAST_NUMBER = Pattern.compile("(\\d{1,5})(?!.*\\d)");
+
+    // Laatste geldige reading die binnen kwam via serial
+    private static final AtomicReference<Reading> latestReading = new AtomicReference<>(null);
+
+    // Voor "alleen publish als er iets nieuws is"
+    private static volatile long lastPublishedAt = 0L;
+
+    // Scheduler voor 5s publish
+    private static final ScheduledExecutorService scheduler =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "Publisher");
+                t.setDaemon(true);
+                return t;
+            });
+
+    public static void main(String[] args) {
+        System.out.println("=== Microbit Serial Bridge ===");
+        System.out.println("API  -> " + API_URL);
+        System.out.println("PORT -> " + FORCE_PORT);
+        System.out.println("BAUD -> " + BAUD_RATE);
+        System.out.println("GUI  -> TCP broadcast port " + GUI_PORT + " (ppm per line)");
+        System.out.println("POST -> " + (ENABLE_BACKEND_POST ? "ENABLED" : "DISABLED"));
+        System.out.println("PUB  -> every " + PUBLISH_INTERVAL_MS + " ms (latest reading)");
+
+        // Start TCP server voor GUI clients
+        new Thread(MicrobitBridge::startGuiServer, "GuiServer").start();
+
+        // Start publisher: elke 5 seconden push de nieuwste meting (als die nieuwer is)
+        scheduler.scheduleAtFixedRate(MicrobitBridge::publishLatestIfNew,
+                0, PUBLISH_INTERVAL_MS, TimeUnit.MILLISECONDS);
+
+        // Serial reconnect loop
+        while (true) {
+            SerialPort port = null;
+            try {
+                port = findByName(FORCE_PORT);
+                if (port == null) {
+                    System.out.println("[WARN] COM poort niet gevonden. Opnieuw in 2s...");
+                    sleep(2000);
+                    continue;
+                }
+
+                setupAndOpen(port);
+                System.out.println("[OK] Verbonden met: " + port.getSystemPortName() + " | " + safe(port.getPortDescription()));
+
+                readLoopBytes(port);
+
+            } catch (Exception ex) {
+                System.out.println("[ERROR] " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+            } finally {
+                if (port != null && port.isOpen()) port.closePort();
+                System.out.println("[INFO] Reconnect in 2s...");
+                sleep(2000);
+            }
+        }
+    }
+
+    // ======= PUBLISHER =======
+    private static void publishLatestIfNew() {
+        try {
+            Reading r = latestReading.get();
+            if (r == null) return;
+
+            // alleen publiceren als er sinds de vorige publish iets nieuws binnen kwam
+            if (r.receivedAtMs <= lastPublishedAt) return;
+
+            lastPublishedAt = r.receivedAtMs;
+
+            // 1) Live naar GUI
+            broadcastToGui(r.ppm);
+
+            // 2) Naar backend (optioneel)
+            if (ENABLE_BACKEND_POST) {
+                boolean ok = postMeting(r.device, r.ppm);
+                System.out.println(ok ? "[HTTP] POST ok" : "[HTTP] POST failed");
+            }
+
+        } catch (Exception e) {
+            System.out.println("[PUBLISH] error: " + e.getMessage());
+        }
+    }
+
+    // ======= GUI TCP SERVER =======
+    private static void startGuiServer() {
+        try (ServerSocket server = new ServerSocket(GUI_PORT)) {
+            System.out.println("[GUI] TCP server listening on 0.0.0.0:" + GUI_PORT);
+
+            while (true) {
+                Socket client = server.accept();
+                System.out.println("[GUI] Client connected: " + client.getInetAddress().getHostAddress());
+
+                PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+                guiClients.add(out);
+
+                new Thread(() -> {
+                    try {
+                        client.getInputStream().read(); // block tot disconnect
+                    } catch (Exception ignored) {
+                    } finally {
+                        guiClients.remove(out);
+                        try { client.close(); } catch (Exception ignored) {}
+                        System.out.println("[GUI] Client disconnected");
+                    }
+                }, "GuiClientCleaner").start();
+            }
+        } catch (Exception e) {
+            System.out.println("[GUI] Server error: " + e.getMessage());
+        }
+    }
+
+    private static void broadcastToGui(int ppm) {
+        for (PrintWriter out : guiClients) {
+            try {
+                out.println(ppm);
+            } catch (Exception ex) {
+                guiClients.remove(out);
+            }
+        }
+    }
+
+    // ======= SERIAL PORT HANDLING =======
+    private static SerialPort findByName(String name) {
+        for (SerialPort p : SerialPort.getCommPorts()) {
+            if (p.getSystemPortName().equalsIgnoreCase(name)) return p;
+        }
+        System.out.println("Beschikbare poorten:");
+        for (SerialPort p : SerialPort.getCommPorts()) {
+            System.out.println("- " + p.getSystemPortName() + " | " + safe(p.getPortDescription()));
+        }
+        return null;
+    }
+
+    private static void setupAndOpen(SerialPort port) {
+        port.setComPortParameters(BAUD_RATE, 8, SerialPort.ONE_STOP_BIT, SerialPort.NO_PARITY);
+        port.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 0, 0);
+
+        if (!port.openPort()) {
+            throw new RuntimeException("Kon poort niet openen: " + port.getSystemPortName());
+        }
+    }
+
+    private static void readLoopBytes(SerialPort port) throws Exception {
+        InputStream in = port.getInputStream();
+        StringBuilder sb = new StringBuilder();
+
+        while (port.isOpen()) {
+            int b = in.read();
+            if (b == -1) throw new RuntimeException("Serial stream gesloten");
+
+            char c = (char) b;
+            if (c == '\r') continue;
+
+            if (c == '\n') {
+                String line = sb.toString().trim();
+                sb.setLength(0);
+
+                if (line.isEmpty()) continue;
+
+                System.out.println("[SERIAL] " + line);
+
+                Parsed parsed = parseLineRobust(line);
+                if (parsed == null) {
+                    System.out.println("[WARN] Bad line (skip)");
+                    continue;
+                }
+
+                if (parsed.isErr) {
+                    System.out.println("[INFO] Sensor ERR/BOOT (skip).");
+                    continue;
+                }
+
+                // Zet latest reading klaar; publisher pakt hem elke 5s
+                latestReading.set(new Reading(parsed.device, parsed.ppm, System.currentTimeMillis()));
+
+            } else {
+                if (sb.length() < 200) sb.append(c);
+                else sb.setLength(0);
+            }
+        }
+    }
+
+    /**
+     * Robuuste parsing:
+     * - device1,1234 -> ok
+     * - device1,ERR / device1,BOOT -> skip
+     * - devc133 -> pak laatste getal (133) en device="device1"
+     * - dvice1,614 -> ok, device="dvice1", ppm=614
+     */
+    private static Parsed parseLineRobust(String line) {
+        if (line.contains(",")) {
+            String[] parts = line.split(",");
+            if (parts.length >= 2) {
+                String device = parts[0].trim();
+                String value  = parts[1].trim();
+
+                if (device.isEmpty()) device = "device1";
+
+                if (value.equalsIgnoreCase("ERR") || value.equalsIgnoreCase("BOOT")) {
+                    return new Parsed(device, 0, true);
+                }
+
+                try {
+                    int ppm = Integer.parseInt(value);
+                    if (ppm < 0 || ppm > 5000) return null;
+                    return new Parsed(device, ppm, false);
+                } catch (NumberFormatException ignored) {
+                    // val door naar fallback
+                }
+            }
+        }
+
+        Matcher m = LAST_NUMBER.matcher(line);
+        if (m.find()) {
+            int ppm;
+            try {
+                ppm = Integer.parseInt(m.group(1));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+            if (ppm < 0 || ppm > 5000) return null;
+            return new Parsed("device1", ppm, false);
+        }
+
+        return null;
+    }
+
+    // ======= BACKEND POST =======
+    private static boolean postMeting(String device, int ppm) {
+        String metingId = UUID.randomUUID().toString();
+        String datum = LocalDate.now().toString();
+        String tijd  = LocalTime.now().format(TIME_FMT); // HH:mm
+
+        String json = "{"
+                + "\"metingId\":\"" + escape(metingId) + "\","
+                + "\"co2Gehalte\":" + ppm + ","
+                + "\"datum\":\"" + escape(datum) + "\","
+                + "\"tijd\":\"" + escape(tijd) + "\","
+                + "\"product\":\"" + escape(device) + "\","
+                + "\"bestelling\":\"\""
+                + "}";
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(API_URL))
+                .timeout(Duration.ofSeconds(5))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        for (int i = 1; i <= 3; i++) {
+            try {
+                HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
+                int code = res.statusCode();
+                if (code >= 200 && code < 300) return true;
+
+                System.out.println("[HTTP] Status " + code + " body=" + res.body());
+            } catch (Exception e) {
+                System.out.println("[HTTP] Try " + i + " error: " + e.getMessage());
+            }
+            sleep(700);
+        }
+        return false;
+    }
+
+    // ======= UTILS =======
+    private static String escape(String s) {
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static void sleep(long ms) {
+        try { Thread.sleep(ms); } catch (InterruptedException ignored) {}
+    }
+
+    private static class Parsed {
+        final String device;
+        final int ppm;
+        final boolean isErr;
+        Parsed(String device, int ppm, boolean isErr) {
+            this.device = device;
+            this.ppm = ppm;
+            this.isErr = isErr;
+        }
+    }
+
+    private static class Reading {
+        final String device;
+        final int ppm;
+        final long receivedAtMs;
+        Reading(String device, int ppm, long receivedAtMs) {
+            this.device = device;
+            this.ppm = ppm;
+            this.receivedAtMs = receivedAtMs;
+        }
+    }
+}
