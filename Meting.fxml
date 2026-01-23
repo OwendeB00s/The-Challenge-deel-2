@@ -22,7 +22,7 @@
         <TextField fx:id="bestellingField" promptText="Bestelling"/>
     </HBox>
 
-    <Button text="Voeg toe" onAction="#voegToe" />
+    <Button text="Voeg toe" onAction="#voegToe"/>
 
     <TableView fx:id="table">
         <columns>
